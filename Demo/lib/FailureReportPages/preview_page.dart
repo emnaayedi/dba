@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
 import '../forms/step_list.dart';
+import '../navbars/bottom_navbar.dart';
 
 class PreviewPage extends StatefulWidget {
 
-  final Map<String,Map<String,String>> data;
+  final Map<String,Map<String,dynamic>> data;
 
   const PreviewPage({required this.data});
   @override
@@ -14,10 +15,26 @@ class PreviewPage extends StatefulWidget {
 }
 
 class PreviewPageState extends State<PreviewPage> {
-   final Map<String,Map<String,String>> data;
+   final Map<String,Map<String,dynamic>> data;
 
   PreviewPageState({required this.data});
+   int _currentIndex = 0;
 
+   void _onTabTapped(int index) {
+     setState(() {
+       _currentIndex = index;
+     });
+     if (index == 0) {
+       // Navigate to Home Page
+       Navigator.pushReplacementNamed(context, '/home');
+     } else if (index == 1) {
+       // Navigate to Search Page
+       Navigator.pushReplacementNamed(context, '/notifications');
+     } else if (index == 2) {
+       // Navigate to Settings Page
+       Navigator.pushReplacementNamed(context, '/failures_list');
+     }
+   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,8 +51,10 @@ class PreviewPageState extends State<PreviewPage> {
               itemBuilder: (context, index) {
                 final key = data.keys.elementAt(index);
                 final stepData = data.values.elementAt(index);
+
                 final subtitles = stepData.keys.toList();
                 final contents=stepData.values.toList();
+
 
                 return Column(
                   children: [
@@ -70,9 +89,13 @@ class PreviewPageState extends State<PreviewPage> {
               },
             ), ),ElevatedButton(
               onPressed: () =>   addFailure(),
-          child: const Text('Create'))
+          child: const Text('Create Report'))
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavBarWidget(
+        currentIndex: _currentIndex,
+        onTabTapped: _onTabTapped,
       ),
     );
 
@@ -113,34 +136,37 @@ class PreviewPageState extends State<PreviewPage> {
   // ...
    addFailure() async {
 
-     await DatabaseHelper.createRig(  stepperData['basicInformation']?['failureTitle'], stepperData['basicInformation']?['rigName'],  stepperData['basicInformation']?['preparedBy'],
-         stepperData['basicInformation']?['equipment'],  stepperData['basicInformation']?['failureType'],  stepperData['basicInformation']?['operator'],
-         stepperData['basicInformation']!['failureDate']!, stepperData['basicInformation']?['bopSurface'], stepperData['basicInformation']?['eventName'],
-         stepperData['basicInformation']?['pod'],  stepperData['prejectStatus']?['partDescription'], stepperData['prejectStatus']?['eventDescription'],
-         stepperData['prejectStatus']?['indicationSymptoms'], stepperData['prejectStatus']?['impactedFunctions'],
-         stepperData['prejectStatus']?['failureSeverity'],
-         1,
-         1,
-         stepperData['basicInformation']!['failureDate']! ,
-         stepperData['failureComponentData']?['cycleCountsUponFailure'],
-         stepperData['failureComponentData']?['failureMode'],
-         stepperData['failureComponentData']?['failureCause'],
-         stepperData['failureComponentData']?['failureMechanism'],
-         stepperData['failureComponentData']?['vendorOEM'],
-         stepperData['failureComponentData']?['repairLocation'],
-         stepperData['failureComponentData']?['discoveryMethod'],
-         stepperData['failureComponentData']?['failureStatus'],
-         stepperData['basicInformation']!['failureDate']!,
-         1,
-         1,1,
-         stepperData['corrctiveActions']?['correctiveActionsSummary'],
-         stepperData['attachments']?['attachments']
+     await DatabaseHelper.createRig(  stepperData['Basic Information']?['Failure Title'], stepperData['Basic Information']?['Rig Name'],  stepperData['Basic Information']?['Prepared By'],
+         stepperData['Basic Information']?['Equipment'],  stepperData['Basic Information']?['Failure Type'],  stepperData['Basic Information']?['Operator'],
+         stepperData['Basic Information']?['Failure Date'],  stepperData['Basic Information']?['Contractor'],
+       stepperData['Basic Information']?['DR Number'],  stepperData['Basic Information']?['Well Name'],  stepperData['Basic Information']?['Failure Status'],  stepperData['Basic Information']?['Operations'], stepperData['Basic Information']?['BOP Surface'], stepperData['Basic Information']?['Event Name'],
+         stepperData['Basic Information']?['Pod'],  stepperData['Project Status']?['part Description'], stepperData['Project Status']?['Event Description'],
+         stepperData['Project Status']?['Indication Symptoms'], stepperData['Project Status']?['Impacted Functions'],
+         stepperData['Project Status']?['Failure Severity'],
+     stepperData['Failure Component Data']?['Failed Item Part No'],
+      stepperData['Failure Component Data']?['Failed Item Serial No'],
+         stepperData['Failure Component Data']?['Original Installation Date'] ,
+         stepperData['Failure Component Data']?['Cycle Counts Upon Failure'],
+         stepperData['Failure Component Data']?['Failure Mode'],
+         stepperData['Failure Component Data']?['Failure Cause'],
+         stepperData['Failure Component Data']?['Failure Mechanism'],
+         stepperData['Failure Component Data']?['Vendor OEM'],
+         stepperData['Failure Component Data']?['Repair Location'],
+         stepperData['Failure Component Data']?['Discovery Method'],
+         stepperData['Failure Component Data']?['Failure Progress Status'],
+         stepperData['Corrective Actions']?['Date Of Repair'],
+       stepperData['Corrective Actions']?['ewItemPartNo'],
+       stepperData['Corrective Actions']?['New Item Serial No'],
+      stepperData['Corrective Actions']?['Repair Kit Part No'],
+         stepperData['Corrective Actions']?['Corrective Actions Summary'],'1'
+
+         // stepperData['attachments']?['attachments']
      );
 
      Navigator.push(
          context,
          MaterialPageRoute(
-             builder: (context) => SuccessPage()));
+             builder: (context) => SuccessPage(data:this.data)));
 
 
    }

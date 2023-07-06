@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../db/database_helper.dart';
 import '../dialogs/single_choice_dialog.dart';
+import '../navbars/bottom_navbar.dart';
+import 'edit_page.dart';
 
 class FailuresList extends StatefulWidget {
-  final List<Map<String, dynamic>> data;
 
-  FailuresList({required this.data});
+  FailuresList();
   @override
-  FailuresListState createState() => FailuresListState(failuresList: data);
+  FailuresListState createState() => FailuresListState();
 }
 
 class FailuresListState extends State<FailuresList> {
@@ -34,7 +35,7 @@ class FailuresListState extends State<FailuresList> {
 
   late List<Map<String, dynamic>> filteredItems = [];
 
-  FailuresListState({required this.failuresList});
+  FailuresListState();
 
   void _refreshData() async {
     final data = await DatabaseHelper.getRigs();
@@ -42,6 +43,23 @@ class FailuresListState extends State<FailuresList> {
       failuresList = data;
       _isLoading = false;
     });
+  }
+  int _currentIndex = 2;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    if (index == 0) {
+      // Navigate to Home Page
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (index == 1) {
+      // Navigate to Search Page
+      Navigator.pushReplacementNamed(context, '/notifications');
+    } else if (index == 2) {
+      // Navigate to Settings Page
+      Navigator.pushReplacementNamed(context, '/failures_list');
+    }
   }
 
   @override
@@ -136,6 +154,11 @@ class FailuresListState extends State<FailuresList> {
         break;
 
       case 'By DR number':
+        setState(() {
+          filteredItems = List.from(failuresList);
+          sortedFailuresDRNumber(filteredItems);
+          isFiltered = true;
+        });
         break;
       case 'By Title':
         filteredItems = List.from(failuresList);
@@ -174,7 +197,7 @@ class FailuresListState extends State<FailuresList> {
                           await showFilter(context);
                         },
                         icon: const Icon(Icons.filter_list),
-                        label: const Text('Filter'),
+                        label: const Text('Filter',style: TextStyle(fontSize: 18),),
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
@@ -182,7 +205,7 @@ class FailuresListState extends State<FailuresList> {
                           await showSorter(context);
                         },
                         icon: const Icon(Icons.sort),
-                        label: const Text('Sort'),
+                        label: const Text('Sort',style: TextStyle(fontSize: 18),),
                       ),
                     ],
                   ),
@@ -220,118 +243,200 @@ class FailuresListState extends State<FailuresList> {
                       itemBuilder: (context, index) => Card(
                           color:
                               index % 2 == 0 ? Colors.white10 : Colors.white60,
-                          margin: const EdgeInsets.all(15),
-                          child: ListTile(
-                            title:
-                                Text(displayedFailures[index]['failureTitle']),
-                            subtitle:
-                                Text(displayedFailures[index]['failureDate']),
+                          margin: const EdgeInsets.all(10),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title:
+                                  Text(displayedFailures[index]['failureTitle']!=null?displayedFailures[index]['failureTitle']!.toString():'--',style: TextStyle(fontSize: 20),),
+                              subtitle:
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      Text(displayedFailures[index]['failureDate']!=null?displayedFailures[index]['failureDate']!.toString():'--'),
+                                      Text(displayedFailures[index]['drNumber']!=null?displayedFailures[index]['drNumber']!.toString():'--'),
+                                      Text(displayedFailures[index]['draft']!=null&&displayedFailures[index]['draft']=='0'?'Draft':''),
 
-                            onTap: () => setState(() {
-                              Map<String, Map<String, String>> data = {
-                                'basicInformation': {
-                                  'failureTitle': displayedFailures[index]
-                                      ['failureTitle'],
-                                  'rigName': displayedFailures[index]
-                                      ['rigName'],
-                                  'preparedBy': '',
-                                  'equipment': '',
-                                  'failureType': '',
-                                  'operator': '',
-                                  'failureDate': displayedFailures[index]
-                                      ['failureDate'],
-                                  'bopSurface': '',
-                                  'eventName': '',
-                                  'pod': ''
-                                },
-                                'projectStatus': {
-                                  'partDescription': '',
-                                  'eventDescription': '',
-                                  'indicationSymptoms': '',
-                                  'impactedFunctions': '',
-                                  'failureSeverity': ''
-                                },
-                                'failureComponentData': {
-                                  'failedItemPartNo': '',
-                                  'failedItemSerialNo': '',
-                                  'originalInstallationDate': '',
-                                  'cycleCountsUponFailure': '',
-                                  'failureMode': '',
-                                  'failureCause': '',
-                                  'failureMechanism': '',
-                                  'vendorOEM': '',
-                                  'repairLocation': '',
-                                  'discoveryMethod': '',
-                                  'failureStatus': '',
-                                  'dateOfRepair': ''
-                                },
-                                'correctiveActions': {
-                                  'newItemPartNo': '',
-                                  'newItemSerialNo': '',
-                                  'RepairKitPartNo': '',
-                                  'correctiveActionsSummary': ''
-                                },
-                                'attachments': {'attachments': ''}
-                              };
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          FailureDetailsPage(data: data)));
-                            }),
-                            trailing: PopupMenuButton<String>(
-                              itemBuilder: (BuildContext context) {
-                                return [
-                                  const PopupMenuItem<String>(
-                                    value: 'edit',
-                                    child: Text('Edit'),
+
+                                    ],
                                   ),
-                                  const PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ];
-                              },
-                              onSelected: (String value) {
-                                // Handle item selection here
-                                if (value == 'edit') {
-                                  // Perform edit action
-                                } else if (value == 'delete') {
-                                  deleteRig(displayedFailures[index]['id']);
-                                }
-                              },
+
+                              onTap: () => setState(() {
+                                Map<String, Map<String, dynamic>> data = {
+
+                                  'Basic Information': {
+                                    'Failure Title': displayedFailures[index]?['failureTitle'],
+                                    'Rig Name': displayedFailures[index]?['rigName'],
+                                    'Prepared By': displayedFailures[index]?['preparedBy'],
+                                    'Equipment': displayedFailures[index]?['equipment'],
+                                    'Failure Type':  displayedFailures[index]?['failureType'],
+                                    'Operator':  displayedFailures[index]?['operator'],
+                                    'Failure Date': displayedFailures[index]?['failureDate'],
+                                    'Contractor': displayedFailures[index]?['contractor'],
+                                    'DR Number': displayedFailures[index]?['drNumber'],
+                                    'Well Name': displayedFailures[index]?['wellName'],
+                                    'Failure Status': displayedFailures[index]?['failureStatus'],
+                                    'Operations': displayedFailures[index]?['operations'],
+                                    'Operations': displayedFailures[index]?['operations'],
+                                    'BOP Surface':  displayedFailures[index]?['bopSurface'],
+                                    'Event Name':  displayedFailures[index]?['eventName'],
+                                    'Pod':  displayedFailures[index]?['pod']
+                                  },
+                                  'Project Status': {
+                                    'Part Description':  displayedFailures[index]?['partDescription'],
+                                    'Event Description':  displayedFailures[index]?['eventDescription'],
+                                    'Indication Symptoms':  displayedFailures[index]?['indicationSymptoms'],
+                                    'Impacted Functions':  displayedFailures[index]?['impactedFunctions'],
+                                    'Failure Severity':  displayedFailures[index]?['failureSeverity']
+                                  },
+                                  'Failure Component Data': {
+                                    'Failed Item Part No':  displayedFailures[index]?['failedItemPartNo'],
+                                    'Failed Item Serial No':  displayedFailures[index]?['failedItemSerialNo'],
+                                    'Original Installation Date':  displayedFailures[index]?['originalInstallationDate'],
+                                    'Cycle Counts Upon Failure':  displayedFailures[index]?['cycleCountsUponFailure'],
+                                    'Failure Mode':  displayedFailures[index]?['failureMode'],
+                                    'Failure Cause':  displayedFailures[index]?['failureCause'],
+                                    'Failure Mechanism':  displayedFailures[index]?['failureMechanism'],
+                                    'Vendor OEM':  displayedFailures[index]?['vendorOEM'],
+                                    'Repair Location':  displayedFailures[index]?['repairLocation'],
+                                    'Discovery Method':  displayedFailures[index]?['discoveryMethod'],
+                                    'Failure Progress Status':  displayedFailures[index]?['failureProgressStatus'],
+                                  },
+                                  'Corrective Actions': {
+                                'Date Of Repair':  displayedFailures[index]?['dateOfRepair'],
+                                'New Item Part No':  displayedFailures[index]?['newItemPartNo'],
+                                    'New Item Serial No':  displayedFailures[index]?['newItemSerialNo'],
+                                    'Repair Kit Part No':  displayedFailures[index]?['RepairKitPartNo'],
+                                    'Corrective Actions Summary':  displayedFailures[index]?['correctiveActionsSummary']
+                                  },
+
+                                };
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            FailureDetailsPage(data: data,failureID: displayedFailures[index]['id'])));
+                              }),
+                              trailing: PopupMenuButton<String>(
+                                itemBuilder: (BuildContext context) {
+                                  return [
+                                    const PopupMenuItem<String>(
+                                      value: 'edit',
+                                      child: Text('Edit'),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Text('Delete'),
+                                    ),
+                                  ];
+                                },
+                                onSelected: (String value) {
+                                  // Handle item selection here
+                                  if (value == 'edit') {
+                                    Map<String, Map<String, dynamic>> data = {
+
+                                      'Basic Information': {
+                                        'Failure Title': displayedFailures[index]?['failureTitle'],
+                                        'Rig Name': displayedFailures[index]?['rigName'],
+                                        'Prepared By': displayedFailures[index]?['preparedBy'],
+                                        'Equipment': displayedFailures[index]?['equipment'],
+                                        'Failure Type':  displayedFailures[index]?['failureType'],
+                                        'Operator':  displayedFailures[index]?['operator'],
+                                        'Failure Date': displayedFailures[index]?['failureDate'],
+                                        'Contractor': displayedFailures[index]?['contractor'],
+                                        'DR Number': displayedFailures[index]?['drNumber'],
+                                        'Well Name': displayedFailures[index]?['wellName'],
+                                        'Failure Status': displayedFailures[index]?['failureStatus'],
+                                        'Operations': displayedFailures[index]?['operations'],
+                                        'Operations': displayedFailures[index]?['operations'],
+                                        'BOP Surface':  displayedFailures[index]?['bopSurface'],
+                                        'Event Name':  displayedFailures[index]?['eventName'],
+                                        'Pod':  displayedFailures[index]?['pod']
+                                      },
+                                      'Project Status': {
+                                        'Part Description':  displayedFailures[index]?['partDescription'],
+                                        'Event Description':  displayedFailures[index]?['eventDescription'],
+                                        'Indication Symptoms':  displayedFailures[index]?['indicationSymptoms'],
+                                        'Impacted Functions':  displayedFailures[index]?['impactedFunctions'],
+                                        'Failure Severity':  displayedFailures[index]?['failureSeverity']
+                                      },
+                                      'Failure Component Data': {
+                                        'Failed Item Part No':  displayedFailures[index]?['failedItemPartNo'],
+                                        'Failed Item Serial No':  displayedFailures[index]?['failedItemSerialNo'],
+                                        'Original Installation Date':  displayedFailures[index]?['originalInstallationDate'],
+                                        'Cycle Counts Upon Failure':  displayedFailures[index]?['cycleCountsUponFailure'],
+                                        'Failure Mode':  displayedFailures[index]?['failureMode'],
+                                        'Failure Cause':  displayedFailures[index]?['failureCause'],
+                                        'Failure Mechanism':  displayedFailures[index]?['failureMechanism'],
+                                        'Vendor OEM':  displayedFailures[index]?['vendorOEM'],
+                                        'Repair Location':  displayedFailures[index]?['repairLocation'],
+                                        'Discovery Method':  displayedFailures[index]?['discoveryMethod'],
+                                        'Failure Progress Status':  displayedFailures[index]?['failureProgressStatus'],
+                                      },
+                                      'Corrective Actions': {
+                                        'Date Of Repair':  displayedFailures[index]?['dateOfRepair'],
+                                        'New Item Part No':  displayedFailures[index]?['newItemPartNo'],
+                                        'New Item Serial No':  displayedFailures[index]?['newItemSerialNo'],
+                                        'Repair Kit Part No':  displayedFailures[index]?['RepairKitPartNo'],
+                                        'Corrective Actions Summary':  displayedFailures[index]?['correctiveActionsSummary']
+                                      },
+
+                                    };
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditFailurePage(data: data, failureID: displayedFailures[index]['id'])));
+                                  } else if (value == 'delete') {
+                                    deleteRig(displayedFailures[index]['id']);
+                                  }
+                                },
+                              ),
+                              // trailing: SizedBox(
+                              //   width: 100,
+                              //   child: Row(
+                              //     children: [
+                              //       IconButton(
+                              //         icon: const Icon(Icons.edit),
+                              //         onPressed: () =>
+                              //             Navigator.push(
+                              //                 context,
+                              //                 MaterialPageRoute(
+                              //                     builder: (context) => PreviewPage(
+                              //                         data: {}))),
+                              //       ),
+                              //       IconButton(
+                              //         icon: const Icon(Icons.delete),
+                              //         onPressed: () =>
+                              //             deleteRig(failuresList[index]['id']),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // )
                             ),
-                            // trailing: SizedBox(
-                            //   width: 100,
-                            //   child: Row(
-                            //     children: [
-                            //       IconButton(
-                            //         icon: const Icon(Icons.edit),
-                            //         onPressed: () =>
-                            //             Navigator.push(
-                            //                 context,
-                            //                 MaterialPageRoute(
-                            //                     builder: (context) => PreviewPage(
-                            //                         data: {}))),
-                            //       ),
-                            //       IconButton(
-                            //         icon: const Icon(Icons.delete),
-                            //         onPressed: () =>
-                            //             deleteRig(failuresList[index]['id']),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // )
                           )),
                     ),
                   ),
                 ]),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+      floatingActionButton: ElevatedButton.icon(
+
+        icon:Icon(Icons.add),
+        label: const Text('Create New Failure',style: TextStyle(fontSize: 19),),
+
+
+        style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),padding: EdgeInsets.all(24)),
+
         onPressed: () => Navigator.push(
             context, MaterialPageRoute(builder: (context) => const StepList())),
+      ),
+      bottomNavigationBar: BottomNavBarWidget(
+        currentIndex: _currentIndex,
+        onTabTapped: _onTabTapped,
       ),
     );
   }
@@ -339,7 +444,9 @@ class FailuresListState extends State<FailuresList> {
   void ascendingSortedFailures(List<Map<String, dynamic>> list) {
     list.sort((a, b) => b['failureDate'].compareTo(a['failureDate']));
   }
-
+  void sortedFailuresDRNumber(List<Map<String, dynamic>> list) {
+    list.sort((a, b) => b['drNumber'].compareTo(a['drNumber']));
+  }
   void sortedFailuresByTitle(List<Map<String, dynamic>> list) {
     list.sort((a, b) => b['failureTitle'].compareTo(a['failureTitle']));
   }
@@ -421,6 +528,14 @@ class FilterDialogState extends State<FilterDialog> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           const Divider(),
+      Row(children: [ const SizedBox(
+        width: 10,
+      ),Text('From :'),    const SizedBox(
+        width: 130,
+      ),Text('To :'),   const SizedBox(
+        height: 20,
+      ),]),
+
           Row(children: [
             Expanded(
               child: Padding(

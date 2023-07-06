@@ -32,15 +32,20 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
     if (picked != null && picked != dateOfRepair) {
       setState(() {
         dateOfRepair = picked;
-        stepperData['correctiveActions']?['dateOfRepair'] = DateFormat('yyyy-MM-dd').format(picked);
+        stepperData['Corrective Actions']?['Date Of Repair'] = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
 
   late DateTime dateOfRepair = DateTime.now();
 
- 
 
+  @override
+  void initState() {
+
+    stepperData['Corrective Actions']?['Date Of Repair'] =   DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+  }
   @override
   Widget build(BuildContext context) {
     return  Column(
@@ -96,6 +101,7 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
               const SizedBox(
                 height: 5,
               ),
+             SizedBox(width:500,child:
               TextField(
                 controller: _newItemPartNumber,
                 decoration: const InputDecoration(
@@ -111,9 +117,9 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
                         )),
                     hintText: 'Enter new item part number'),
                 onChanged: (value) {
-                  stepperData['correctiveActions']?['newItemPartNo'] = value;
+                  stepperData['Corrective Actions']?['New Item Part No'] = value;
                 },
-              ),
+              )),
               const SizedBox(
                 height: 20,
               ),
@@ -127,6 +133,7 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
               const SizedBox(
                 height: 5,
               ),
+   SizedBox(width:500,child:
               TextField(
                 controller: _newItemSerialNumber,
                 decoration: const InputDecoration(
@@ -142,9 +149,9 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
                         )),
                     hintText: 'Enter new item serial number'),
                 onChanged: (value) {
-                  stepperData['correctiveActions']?['newItemSerialNo'] = value;
+                  stepperData['Corrective Actions']?['New Item Serial No'] = value;
                 },
-              ),
+              )),
               const SizedBox(
                 height: 20,
               ),
@@ -158,6 +165,7 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
               const SizedBox(
                 height: 5,
               ),
+   SizedBox(width:500,child:
               TextField(
                 controller: _repairKitPatNumber,
                 decoration: const InputDecoration(
@@ -173,9 +181,9 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
                         )),
                     hintText: 'Enter repair kit part number'),
                 onChanged: (value) {
-                  stepperData['correctiveActions']?['repairKitPartNo'] = value;
+                  stepperData['Corrective Actions']?['Repair Kit Part No'] = value;
                 },
-              ),
+              )),
               const SizedBox(
                 height: 20,
               ),
@@ -206,7 +214,7 @@ class CorrectiveActionsStepState extends State<CorrectiveActionsStep> {
                           )),
                       hintText: 'Enter corrective actions'),
                   onChanged: (value) {
-                    stepperData['correctiveActions']?['correctiveActionsSummary'] = value;
+                    stepperData['Corrective Actions']?['Corrective Actions Summary'] = value;
                   },
                   maxLines: null,
                   expands: true,

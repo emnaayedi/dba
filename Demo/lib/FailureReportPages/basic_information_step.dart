@@ -6,17 +6,27 @@ import '../forms/step_list.dart';
 
 class BasicInformationStep extends StatefulWidget {
   @override
-  final Key? key;
-  const BasicInformationStep({this.key}) : super(key: key);
+  final bool isUpdate;
+  final Map<String,dynamic>? data;
+
+  const BasicInformationStep({ required this.isUpdate,this.data});
+
   @override
-  BasicInformationStepState createState() => BasicInformationStepState();
+  BasicInformationStepState createState() =>
+      BasicInformationStepState(isUpdate: isUpdate,data:this.data);
+
 }
 
 class BasicInformationStepState extends State<BasicInformationStep> {
-  final TextEditingController _failureTitleController = TextEditingController();
-  final TextEditingController _rigNameController = TextEditingController();
-  final TextEditingController _preparedByController = TextEditingController();
-  final TextEditingController _equipmentController = TextEditingController();
+  final bool isUpdate;
+  final Map<String,dynamic>? data;
+   BasicInformationStepState({ required this.isUpdate,this.data}) ;
+
+
+  final TextEditingController _FailureTitleController = TextEditingController();
+  final TextEditingController _RigNameController = TextEditingController();
+  final TextEditingController _PreparedByController = TextEditingController();
+  final TextEditingController _EquipmentController = TextEditingController();
   final TextEditingController _operatorController = TextEditingController();
   final TextEditingController _contractorController = TextEditingController();
   final TextEditingController _dRNumberController = TextEditingController();
@@ -33,13 +43,11 @@ class BasicInformationStepState extends State<BasicInformationStep> {
     'Maitenance Error'
   ];
   List<String> operations = <String>[
-    'Wear and Tear',
-    'Manufacturing Defect',
-    'OEM Design Flaw',
-    'Operating Error',
-    'Investigation Inconclusive',
-    'Undetermined',
-    'Maitenance Error'
+    'Surface',
+    'Subsea',
+    'Running and pulling riser',
+    'Repairs and upgrade',
+    'New build'
   ];
   late Map<String, String> failureStatusResult;
   late Map<String, String> operationsResult;
@@ -47,15 +55,59 @@ class BasicInformationStepState extends State<BasicInformationStep> {
   late String operationsValue;
   String failureStatusButtonText = 'Select Failure Status';
   String operationsButtonText = 'Select Operations';
-  int selectedFailureType = 0;
-  int selectedPod = 0;
+  late int selectedFailureType ;
+  late int selectedPod ;
   DateTime failureDate = DateTime.now();
 
 
   @override
   void initState() {
+
     super.initState();
-    stepperData['basicInformation']?['failureDate'] = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    if(isUpdate){
+
+        switch (data!['Failure Type']){
+          case 'Operational Event':
+        selectedFailureType= 0;
+        break;
+          case 'IBWM Event':
+            selectedFailureType=1;
+            break;
+        }
+        switch (data!['Pod']) {
+          case 'Blue Pod':
+           selectedPod=0;
+            // Perform specific actions for apple
+            break;
+
+          case 'Yellow Pod':
+          selectedPod=1;
+            break;
+          case 'Surface':
+            selectedPod=2;
+            // Perform specific actions for apple
+            break;
+
+
+
+    }
+
+        _FailureTitleController..text=data?['Failure Title']!=null?data!['Failure Title']:'' ;
+        _RigNameController ..text=data?['Rig Name']!=null?data!['Rig Name']:'' ;
+        _PreparedByController ..text=data?['Prepared By']!=null?data!['Prepared By']:'' ;
+        _EquipmentController ..text=data?['Equipment']!=null?data!['Equipment']:'';
+        _operatorController ..text=data?['Operator'] !=null?data!['Operator']:'' ;
+        _contractorController ..text=data?['Controller']!=null?data!['Controller']:''  ;
+        _dRNumberController ..text=data?['DR Number']!=null?data!['DR Number']:'' ;
+        _wellNameController ..text=data?['Well Name']!=null? data!['Well Name']:'';
+        _bopSurfaceController ..text=data?['BOP Surface']!=null?data!['BOP Surface']:'' ;
+        _eventNameController ..text=data?['Event Name']!=null?data!['Event Name']:'';}else{
+    stepperData['Basic Information']?['Failure Date'] = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    stepperData['Basic Information']?['Failure Type'] ='Operational Event';
+    stepperData['Basic Information']?['Pod'] ='Blue Pod';
+    selectedFailureType=0;
+    selectedPod=0;}
+
 
   }
 
@@ -74,48 +126,63 @@ class BasicInformationStepState extends State<BasicInformationStep> {
       setState(() {
         failureDate = picked;
 
-        stepperData['basicInformation']?['failureDate'] = DateFormat('yyyy-MM-dd').format(picked);
+        if(isUpdate){data?['Failure Date']=DateFormat('yyyy-MM-dd').format(picked);}else{stepperData['Basic Information']?['Failure Date'] = DateFormat('yyyy-MM-dd').format(picked);}
 
       });
     }
   }
   Future <void> _selectFailureStatusOption(BuildContext context) async {
-    failureStatusResult = (await    showDialog<Map<String, String>>(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChoiceDialog( data: failureStatus, title:'Failure Status' ,);
-      },
-    ))!;
+    try {
+      failureStatusResult = (await showDialog<Map<String, String>>(
+        context: context,
+        builder: (BuildContext context) {
+          return SingleChoiceDialog(
+            data: failureStatus, title: 'Failure Status',);
+        },
+      ))!;
 
       setState(() {
-        failureStatusButtonText=failureStatusResult['option']!;
-        stepperData['basicInformation']?['failureStatus'] = failureStatusResult['option']!;});
+        failureStatusButtonText = failureStatusResult['option']!;
+        if(isUpdate){
+          data?['Failure Status']=failureStatusResult['option']!;
+        }else{
 
+        stepperData['Basic Information']?['Failure Status'] =
+        failureStatusResult['option']!;
+      }});
+    } catch(e){}
 
   }
   Future <void> _selectOperationsOption(BuildContext context) async {
-    operationsResult = (await    showDialog<Map<String, String>>(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChoiceDialog( data: operations, title:'Operations' ,);
-      },
-    ))!;
+    try {
+      operationsResult = (await showDialog<Map<String, String>>(
+        context: context,
+        builder: (BuildContext context) {
+          return SingleChoiceDialog(data: operations, title: 'Operations',);
+        },
+      ))!;
       setState(() {
-        operationsButtonText=operationsResult['option']!;
-      stepperData['basicInformation']?['operations']=operationsResult['option']!;});
-
+        operationsButtonText = operationsResult['option']!;
+        if(isUpdate){
+          data?['Operations']=failureStatusResult['option']!;
+        }else {
+          stepperData['Basic Information']?['Operations'] =
+          operationsResult['option']!;
+        }});
+    }catch(e){}
 
   }
-
-
   Widget cardButtonFailureType(String assetName, int index) {
     return OutlinedButton(
       onPressed: () {
         setState(() {
           selectedFailureType= index;
-          stepperData['basicInformation']?['failureType'] = assetName;
+          if(isUpdate){
+            data?['Failure Type']=assetName!;
+          }else{
+          stepperData['Basic Information']?['Failure Type'] = assetName;
 
-        });
+        }});
       },
       style: OutlinedButton.styleFrom(
           alignment: Alignment.center,
@@ -137,9 +204,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
       onPressed: () {
         setState(() {
           selectedPod= index;
-          stepperData['basicInformation']?['pod'] = assetName;
+          if(isUpdate){
+            data?['Pod']=assetName;
+          }else{
+          stepperData['Basic Information']?['Pod'] = assetName;
 
-        });
+        }});
       },
       style: OutlinedButton.styleFrom(
           alignment: Alignment.center,
@@ -164,7 +234,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Failure title',
+            'FailureTitle',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -173,9 +243,9 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           ),
           const SizedBox(
             height: 5,
-          ),
+          ),SizedBox(width:300,child:
           TextField(
-            controller: _failureTitleController,
+            controller: _FailureTitleController,
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
@@ -187,16 +257,19 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                       color: Color(0xff000000),
                       width: 2.0,
                     )),
-                hintText: 'Enter failure title'),
+                hintText: 'Enter Failure Title'),
             onChanged: (value) {
-              stepperData['basicInformation']?['failureTitle'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Failure Title']=value;
+    }else{
+              stepperData['Basic Information']?['Failure Title'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
           const Text(
-            'Rig name',
+            'Rig Name',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -206,8 +279,9 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:250,child:
           TextField(
-            controller: _rigNameController,
+            controller: _RigNameController,
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
@@ -219,16 +293,19 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                       color: Color(0xff000000),
                       width: 2.0,
                     )),
-                hintText: 'Enter rig name'),
+                hintText: 'Enter Rig Name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['rigName'] = value;
-            },
-          ),
+              if(isUpdate){
+                data?['Rig Name']=value;
+              }else{
+                stepperData['Basic Information']?['Rig Name'] = value;
+              }},
+          )),
           const SizedBox(
             height: 20,
           ),
           const Text(
-            'Prepared by',
+            'Prepared By',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -238,8 +315,9 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:300,child:
           TextField(
-            controller: _preparedByController,
+            controller: _PreparedByController,
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
@@ -253,9 +331,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter preparer name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['preparedBy'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Prepared By']=value;
+    }else{
+              stepperData['Basic Information']?['Prepared By'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
@@ -270,8 +351,9 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:300,child:
           TextField(
-            controller: _equipmentController,
+            controller: _EquipmentController,
             decoration: const InputDecoration(
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
@@ -285,17 +367,20 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter equipment name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['equipment'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Equipment']=value;
+    }else{
+              stepperData['Basic Information']?['Equipment'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
           const Text(
-            'Select failure type',
+            'Select Failure Type',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 18,
               color: Color(0xff000000),
             ),
           ),
@@ -327,7 +412,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           ),
           const SizedBox(
             height: 5,
-          ),
+          ),SizedBox(width:300,child:
           TextField(
             controller: _operatorController,
             decoration: const InputDecoration(
@@ -343,9 +428,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter operator name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['operator'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Operator']=value;
+    }else{
+              stepperData['Basic Information']?['Operator'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
@@ -379,11 +467,11 @@ class BasicInformationStepState extends State<BasicInformationStep> {
 
             ),
             onPressed: () => _selectFailureDate(context),
-            label: Text(
+            label: Text( isUpdate?data!['Failure Date']:'${DateFormat('yyyy-MM-dd').format(failureDate)}',
               style:const TextStyle(color: Color(0xff020202)),
 
-              ' ${DateFormat('yyyy-MM-dd').format(failureDate)}'
-                ,
+
+
             ),
             icon: const Icon(Icons.date_range),
 
@@ -402,6 +490,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+         SizedBox(width:300,child:
           TextField(
             controller: _contractorController,
             decoration: const InputDecoration(
@@ -417,9 +506,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter contractor name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['contractor'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Contractor']=value;
+    }else{
+              stepperData['Basic Information']?['Contractor'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
@@ -434,6 +526,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:200,child:
           TextField(
             controller: _dRNumberController,
             decoration: const InputDecoration(
@@ -449,12 +542,16 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter DR number'),
             onChanged: (value) {
-              stepperData['basicInformation']?['DRNumber'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['DR Number']=value;
+    }else{
+              stepperData['Basic Information']?['DR Number'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
+
           const Text(
             'Well name',
             style: TextStyle(
@@ -466,6 +563,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:300,child:
           TextField(
             controller: _wellNameController,
             decoration: const InputDecoration(
@@ -481,9 +579,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter well name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['wellName'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Well Name']=value;
+    }else{
+              stepperData['Basic Information']?['Well Name'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
@@ -504,7 +605,14 @@ class BasicInformationStepState extends State<BasicInformationStep> {
 
               });
             },
-            child: Text(failureStatusButtonText),
+            child:SizedBox(width:250,
+              child: Row(
+                  children: [isUpdate?Text(data!['Failure Status']):
+                    Text(failureStatusButtonText,style: TextStyle(fontSize: 18),),
+                    Icon(Icons.keyboard_arrow_down)
+                  ]),
+            ),
+
           ),
           const SizedBox(
             height: 20,
@@ -526,7 +634,13 @@ class BasicInformationStepState extends State<BasicInformationStep> {
 
               });
             },
-            child: Text(operationsButtonText),
+            child:SizedBox(width:200,
+              child: Row(
+                  children: [isUpdate?Text(data!['Operations']):
+                    Text(operationsButtonText,style: TextStyle(fontSize: 18),),
+                    Icon(Icons.keyboard_arrow_down)
+                  ]),
+            ),
           ),
           const SizedBox(
             height: 20,
@@ -542,6 +656,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:300,child:
           TextField(
             controller: _bopSurfaceController,
             decoration: const InputDecoration(
@@ -557,9 +672,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter BOP #/Surface'),
             onChanged: (value) {
-              stepperData['basicInformation']?['bopSurface'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['BOP Surface']=value;
+    }else{
+              stepperData['Basic Information']?['BOP Surface'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),
@@ -574,6 +692,7 @@ class BasicInformationStepState extends State<BasicInformationStep> {
           const SizedBox(
             height: 5,
           ),
+   SizedBox(width:300,child:
           TextField(
             controller: _eventNameController,
             decoration: const InputDecoration(
@@ -589,9 +708,12 @@ class BasicInformationStepState extends State<BasicInformationStep> {
                     )),
                 hintText: 'Enter event name'),
             onChanged: (value) {
-              stepperData['basicInformation']?['eventName'] = value;
-            },
-          ),
+    if(isUpdate){
+    data?['Event Name']=value;
+    }else{
+              stepperData['Basic Information']?['Event Name'] = value;
+            }},
+          )),
           const SizedBox(
             height: 20,
           ),

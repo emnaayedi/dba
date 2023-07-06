@@ -26,7 +26,7 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
         onPressed: () {
           setState(() {
             selectedFailureType = index;
-            stepperData['projectStatus']?['failureSeverity'] = assetName;
+            stepperData['Project Status']?['Failure Severity'] = assetName;
 
           });
         },
@@ -45,7 +45,11 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
         )
     );
   }
-
+  @override
+  void initState() {
+    super.initState();
+    stepperData['Project Status']?['Failure Severity'] = '[1] Stack/LMPR Pull';
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -62,6 +66,7 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
             const SizedBox(
               height: 5,
             ),
+          SizedBox(width:600,child:
             TextField(
               controller: _partDescriptionController,
               decoration: const InputDecoration(
@@ -77,9 +82,9 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
                       )),
                   hintText: 'Enter part description'),
               onChanged: (value) {
-                stepperData['projectStatus']?['partDescription'] = value;
+                stepperData['Project Status']?['Part Description'] = value;
               },
-            ),
+            )),
             const SizedBox(
               height: 20,
             ),
@@ -95,7 +100,10 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
             ),
             SizedBox(
               height: 100,
+              width:600,
+
               child: TextField(
+
                 textAlignVertical: TextAlignVertical.top,
                 controller: _eventDescriptionController,
                 decoration: const InputDecoration(
@@ -110,7 +118,7 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
                   ),
                   hintText: 'Enter event description',),
                 onChanged: (value) {
-                  stepperData['projectStatus']?['eventDescription'] = value;
+                  stepperData['Project Status']?['Event Description'] = value;
                 },
                 maxLines: null,
                 expands: true,
@@ -130,6 +138,7 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
             const SizedBox(
               height: 5,
             ),
+  SizedBox(width:600,child:
             TextField(
               controller: _indicationSymptomsController,
               decoration: const InputDecoration(
@@ -145,9 +154,9 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
                       )),
                   hintText: 'Enter indication / Symptoms'),
               onChanged: (value) {
-                stepperData['projectStatus']?['indicationSymptoms'] = value;
+                stepperData['Project Status']?['Indication Symptoms'] = value;
               },
-            ),
+            )),
             const SizedBox(
               height: 20,
             ),
@@ -161,6 +170,7 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
             const SizedBox(
               height: 5,
             ),
+  SizedBox(width:600,child:
             TextField(
               controller: _impactedFunctionsPotentialRisksController,
               decoration: const InputDecoration(
@@ -176,9 +186,9 @@ class ProjectStatusStepState extends State<ProjectStatusStep> {
                       )),
                   hintText: 'Enter impacted function / potential risks'),
               onChanged: (value) {
-                stepperData['projectStatus']?['impactedFunctions'] = value;
+                stepperData['Project Status']?['Impacted Functions'] = value;
               },
-            ),
+            )),
             const SizedBox(
               height: 20,
             ),

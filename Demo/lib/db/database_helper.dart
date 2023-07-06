@@ -14,6 +14,11 @@ class DatabaseHelper {
     failureType TEXT,
     operator TEXT,
     failureDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    contractor Text,
+    drNumber Text,
+    wellName Text,
+    failureStatus Text,
+    operations Text,
     bopSurface TEXT,
     eventName TEXT,
     pod TEXT,
@@ -24,7 +29,7 @@ class DatabaseHelper {
     failureSeverity TEXT,
     failedItemPartNo TEXT,
     failedItemSerialNo TEXT,
-    originalInstallationDate TEXT,
+    originalInstallationDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     cycleCountsUponFailure TEXT,
     failureMode TEXT,
     failureCause TEXT,
@@ -32,13 +37,14 @@ class DatabaseHelper {
     vendorOEM TEXT,
     repairLocation TEXT,
     discoveryMethod TEXT,
-    failureStatus TEXT,
-    dateOfRepair,
-    newItemPartNo INTEGER,
-    newItemSerialNo INTEGER,
-    RepairKitPartNo INTEGER,
+    failureProgressStatus TEXT,
+    dateOfRepair TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    newItemPartNo  TEXT,
+    newItemSerialNo  TEXT,
+    RepairKitPartNo  TEXT,
     correctiveActionsSummary TEXT,
-    attachments TEXT)
+    attachments TEXT,
+    draft Text)
       
       """);
   }
@@ -47,7 +53,7 @@ class DatabaseHelper {
   static Future<sql.Database> db() async {
     return sql.openDatabase(
       'dba.db',
-      version: 1,
+      version: 2,
       onCreate: (sql.Database database, int version) async {
         await createTables(database);
       },
@@ -55,17 +61,18 @@ class DatabaseHelper {
   }
 
 
-  static Future<int> createRig(String? failureTitle  ,String? rigName , String? preparedBy ,String? equipment ,  String? failureType ,  String? operator ,  String ? failureDate ,  String?
-  bopSurface ,  String?  eventName ,  String? pod ,  String? partDescription ,  String?  eventDescription ,  String?
-  indicationSymptoms ,  String? impactedFunctions ,  String? failureSeverity , int? failedItemPartNo ,   int? failedItemSerialNo ,
+  static Future<int> createRig(String? failureTitle  ,String? rigName , String? preparedBy ,String? equipment ,  String? failureType ,  String? operator ,  String ? failureDate ,String ? contractor,
+  drNumber, String? wellName, String? failureStatus, String? operations,  String? bopSurface ,  String?  eventName ,  String? pod ,  String? partDescription ,  String?  eventDescription ,  String?
+  indicationSymptoms ,  String? impactedFunctions ,  String? failureSeverity ,  String? failedItemPartNo ,    String? failedItemSerialNo ,
   String? originalInstallationDate , String?  cycleCountsUponFailure ,  String?  failureMode ,  String?  failureCause ,  String? failureMechanism ,
-      String? vendorOEM ,  String? repairLocation ,  String? discoveryMethod ,  String?  failureStatus ,String?  dateOfRepair,  int? newItemPartNo ,
-      int? newItemSerialNo ,  int?  repairKitPartNo ,  String? correctiveActionsSummary ,  String?  attachments ) async {
+      String? vendorOEM ,  String? repairLocation ,  String? discoveryMethod ,  String?  failureProgressStatus ,String?  dateOfRepair,   String? newItemPartNo ,
+       String? newItemSerialNo ,   String?  repairKitPartNo ,  String? correctiveActionsSummary ,String? draft) async {
     final db = await DatabaseHelper.db();
 
     final data = {'failureTitle': failureTitle,'rigName': rigName, 'preparedBy': preparedBy,
       'equipment': equipment, 'failureType': failureType, 'operator': operator,
-      'failureDate': failureDate, 'bopSurface': bopSurface,'eventName': eventName,
+      'failureDate': failureDate,'contractor':contractor, 'drNumber':drNumber,'wellName':wellName,
+      'failureStatus':failureStatus,'operations':operations, 'bopSurface': bopSurface,'eventName': eventName,
       'pod': pod, 'partDescription': partDescription, 'eventDescription': eventDescription,
     'indicationSymptoms': indicationSymptoms, 'impactedFunctions': impactedFunctions,
     'failureSeverity': failureSeverity,
@@ -79,23 +86,25 @@ class DatabaseHelper {
     'vendorOEM': vendorOEM,
     'repairLocation': repairLocation,
     'discoveryMethod': discoveryMethod,
-    'failureStatus': failureStatus,
+    'failureProgressStatus': failureProgressStatus,
     'dateOfRepair': dateOfRepair,
     'newItemPartNo': newItemPartNo,
     'newItemSerialNo': newItemSerialNo,
     'repairKitPartNo': repairKitPartNo,
     'correctiveActionsSummary': correctiveActionsSummary,
-      'attachments': attachments };
+      'draft':draft
+      // 'attachments': attachments
+    };
     final id = await db.insert('failures', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
-
+print(data);
     return id;
   }
 
   // Read all items
   static Future<List<Map<String, dynamic>>> getRigs() async {
     final db = await DatabaseHelper.db();
-    return db.query('failures', orderBy: "id");
+    return db.query('failures', orderBy: "draft");
   }
 
   // Get a single item by id
